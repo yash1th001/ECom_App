@@ -1,11 +1,11 @@
 import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
-import { T } from "@/src/components/Text";
-import { Button } from "@/src/components/Button";
-import { PriceTicker } from "@/src/components/PriceTicker";
-import { colors } from "@/src/theme/colors";
-import { s } from "@/src/theme/spacing";
+import { T } from "@/components/Text";
+import { Button } from "@/components/Button";
+import { PriceTicker } from "@/components/PriceTicker";
+import { colors } from "@/theme/colors";
+import { s } from "@/theme/spacing";
 
 export default function Welcome() {
   return (

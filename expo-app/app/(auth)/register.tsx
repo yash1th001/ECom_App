@@ -2,11 +2,11 @@ import { useState } from "react";
 import { View, StyleSheet, TextInput, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { T } from "@/src/components/Text";
-import { Button } from "@/src/components/Button";
-import { colors } from "@/src/theme/colors";
-import { s, radius } from "@/src/theme/spacing";
-import { supabase } from "@/src/lib/supabase";
+import { T } from "@/components/Text";
+import { Button } from "@/components/Button";
+import { colors } from "@/theme/colors";
+import { s, radius } from "@/theme/spacing";
+import { supabase } from "@/lib/supabase";
 
 export default function Register() {
   const [name, setName] = useState("");

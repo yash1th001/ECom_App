@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Aurum",
+    "slug": "aurum",
+    "scheme": "aurum",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.aurum.app" },
+    "android": { "package": "com.aurum.app" },
+    "plugins": ["expo-router", "expo-secure-store", "expo-font"],
+    "experiments": { "typedRoutes": true }
+  }
+}

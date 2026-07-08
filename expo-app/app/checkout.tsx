@@ -10,7 +10,7 @@ import { s, radius } from "@/theme/spacing";
 import { useCartStore } from "@/stores/cartStore";
 import { computeBreakdown } from "@/lib/pricing";
 import { supabase } from "@/lib/supabase";
-import { placeOrder } from "@/lib/orders";
+import { placeOrder, processMockPayment } from "@/lib/orders";
 
 const KYC_THRESHOLD = Number(process.env.EXPO_PUBLIC_KYC_THRESHOLD_INR ?? 200000);
 
@@ -45,15 +45,32 @@ export default function Checkout() {
         return;
       }
     }
+
+    Alert.alert(
+      "Secure Checkout",
+      `Choose your payment gateway for ₹${Math.round(total).toLocaleString("en-IN")}:`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Razorpay (UPI/NetBanking)", onPress: () => proceedWithPayment("razorpay") },
+        { text: "Stripe (Card Payment)", onPress: () => proceedWithPayment("stripe") }
+      ]
+    );
+  }
+
+  async function proceedWithPayment(method: "stripe" | "razorpay") {
     setPlacing(true);
     try {
       const { data: user } = await supabase.auth.getUser();
-      const { data: address } = await supabase
+      const { data: address, error: addrErr } = await supabase
         .from("addresses")
         .insert({ user_id: user.user!.id, line1, city, pin })
         .select("id").single();
-      // TODO: Razorpay / Stripe payment step here.
-      const order = await placeOrder(items, address!.id);
+      if (addrErr) throw addrErr;
+
+      const payment = await processMockPayment(total, method);
+      if (!payment.success) throw new Error("Payment declined.");
+
+      const order = await placeOrder(items, address!.id, payment.transactionId);
       clear();
       router.replace({ pathname: "/order/[id]", params: { id: order.id } });
     } catch (e: any) {
@@ -62,6 +79,7 @@ export default function Checkout() {
       setPlacing(false);
     }
   }
+
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1, backgroundColor: colors.bg }}>

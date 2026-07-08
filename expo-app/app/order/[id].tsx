@@ -23,7 +23,7 @@ export default function OrderDetail() {
     void loadOrder(String(id)).then((o) => { setOrder(o); prevStage.current = o?.stage ?? null; });
     const ch = supabase
       .channel(`order:${id}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, (payload) => {
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, (payload: { new: unknown }) => {
         const next = payload.new as Order;
         setOrder(next);
         if (prevStage.current && prevStage.current !== next.stage) {

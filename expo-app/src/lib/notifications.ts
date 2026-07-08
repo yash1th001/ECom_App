@@ -25,7 +25,7 @@ export async function notifyLocal(title: string, body: string, secondsFromNow = 
     await Notifications.scheduleNotificationAsync({
       content: { title, body },
       trigger: secondsFromNow > 1
-        ? { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: secondsFromNow, repeats: false }
+        ? { seconds: secondsFromNow, repeats: false }
         : null,
     });
   } catch (e) {

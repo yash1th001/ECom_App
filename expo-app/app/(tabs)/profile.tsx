@@ -18,7 +18,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => setProfile(data as Profile));
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }: { data: Profile }) => setProfile(data));
   }, [user]);
 
   return (

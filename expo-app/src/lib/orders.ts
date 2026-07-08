@@ -2,7 +2,19 @@ import { supabase } from "./supabase";
 import type { CartItem, Order } from "@/types";
 import { computeBreakdown } from "./pricing";
 
-export async function placeOrder(items: CartItem[], addressId: string): Promise<Order> {
+// Simulates Stripe / Razorpay transaction processing
+export async function processMockPayment(amountInr: number, method: "stripe" | "razorpay"): Promise<{ success: boolean; transactionId: string }> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        transactionId: `${method.toUpperCase()}_TX_${Math.random().toString(36).substring(2, 11).toUpperCase()}`
+      });
+    }, 1500);
+  });
+}
+
+export async function placeOrder(items: CartItem[], addressId: string, paymentRef?: string): Promise<Order> {
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error("Not signed in.");
 
@@ -22,7 +34,6 @@ export async function placeOrder(items: CartItem[], addressId: string): Promise<
     };
   });
 
-  // TODO: integrate Razorpay/Stripe here and only insert on payment success.
   const { data, error } = await supabase
     .from("orders")
     .insert({
@@ -32,6 +43,10 @@ export async function placeOrder(items: CartItem[], addressId: string): Promise<
       stage: "placed",
       address_id: addressId,
       items: orderItems,
+      // Store mock payment reference in the metadata/json or order tracking details
+      courier: "Processing Escrow",
+      awb_number: paymentRef ?? "MOCK_PAYMENT_PENDING",
+      eta: "Pending Escrow Insurance"
     })
     .select("*")
     .single();
@@ -39,6 +54,7 @@ export async function placeOrder(items: CartItem[], addressId: string): Promise<
   if (error) throw error;
   return data as Order;
 }
+
 
 export async function loadOrders(): Promise<Order[]> {
   const { data, error } = await supabase

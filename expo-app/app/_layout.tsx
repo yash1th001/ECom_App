@@ -10,6 +10,7 @@ import { colors } from "@/theme/colors";
 import { usePriceStore } from "@/stores/priceStore";
 import { useAuthStore } from "@/stores/authStore";
 import { ensureNotifPermission } from "@/lib/notifications";
+import { crashReporter } from "@/lib/crashReporter";
 
 export default function RootLayout() {
   const [fontsLoaded] = useSerif({
@@ -29,7 +30,11 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  useEffect(() => { void authInit(); }, [authInit]);
+  useEffect(() => {
+    crashReporter.init();
+    void authInit();
+  }, [authInit]);
+
   useEffect(() => {
     const stop = startPolling(15000);
     void ensureNotifPermission();
@@ -37,11 +42,17 @@ export default function RootLayout() {
   }, [startPolling]);
 
   useEffect(() => {
-    if (!initialised) return;
-    const inAuthGroup = segments[0] === "(auth)";
-    if (!session && !inAuthGroup) router.replace("/(auth)/welcome");
-    if (session && inAuthGroup) router.replace("/(tabs)");
-  }, [initialised, session, segments, router]);
+    if (!initialised || !fontsLoaded) return;
+    const t = setTimeout(() => {
+      const inAuthGroup = segments[0] === "(auth)";
+      if (!session && !inAuthGroup) {
+        router.replace("/(auth)/welcome");
+      } else if (session && inAuthGroup) {
+        router.replace("/(tabs)");
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [initialised, fontsLoaded, session, segments, router]);
 
   if (!fontsLoaded || !initialised) {
     return (

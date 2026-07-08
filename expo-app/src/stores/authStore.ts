@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Session, User } from "@supabase/supabase-js";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { secureStorage } from "@/lib/secureStorage";
 
@@ -24,7 +24,7 @@ export const useAuthStore = create<State>((set) => ({
     const keep = (await secureStorage.getItem(KEEP_KEY)) !== "false";
     const { data } = await supabase.auth.getSession();
     set({ session: data.session, user: data.session?.user ?? null, keepSignedIn: keep, initialised: true });
-    supabase.auth.onAuthStateChange((_e, s) => {
+    supabase.auth.onAuthStateChange((_e: AuthChangeEvent, s: Session | null) => {
       set({ session: s, user: s?.user ?? null });
     });
   },

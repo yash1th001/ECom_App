@@ -44,6 +44,7 @@ export default function ProductDetail() {
 
   function add() {
     if (!quote) { Alert.alert("Live rate unavailable", "Please retry in a moment."); return; }
+    if (!product) return;
     addToCart(product);
     Alert.alert("Added to cart", `Price locked for ${Math.round(useCartStore.getState().lockMs() / 60000)} minutes.`, [
       { text: "Keep browsing" },

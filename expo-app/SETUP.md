@@ -55,14 +55,16 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env`:
+By default, **if you do not edit `.env` or leave the default values, the app will run in offline Mock Mode**. In Mock Mode, database writes are persisted securely on the device and local user states are loaded dynamically, allowing instant end-to-end sandbox testing.
+
+To connect a live database, edit `.env`:
 
 | Variable | Required | Example | Purpose |
 | --- | --- | --- | --- |
-| `EXPO_PUBLIC_SUPABASE_URL` | ✅ | `https://abcd.supabase.co` | Supabase project URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | ✅ | `eyJhbGci…` | Supabase anon key (publishable, safe to ship) |
+| `EXPO_PUBLIC_SUPABASE_URL` | ⚠️ (Optional for Mock) | `https://abcd.supabase.co` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | ⚠️ (Optional for Mock) | `eyJhbGci…` | Supabase anon key |
 | `EXPO_PUBLIC_GOLD_API_URL` | | `https://api.gold-api.com/price/XAU` | Live spot-price endpoint |
-| `EXPO_PUBLIC_USD_INR` | | `83.5` | Fallback FX rate used until a live FX feed is wired |
+| `EXPO_PUBLIC_USD_INR` | | `83.5` | Fallback FX rate used until a live FX feed is fetched |
 | `EXPO_PUBLIC_MIN_ORDER_WEIGHT_G` | | `100` | Minimum total cart weight (grams) |
 | `EXPO_PUBLIC_KYC_THRESHOLD_INR` | | `200000` | Order value above which KYC is required |
 | `EXPO_PUBLIC_GST_PERCENT` | | `3` | GST applied on invoice |
@@ -98,7 +100,12 @@ Then choose one:
 
 ## 6. Seed a test user
 
-1. Sign up in-app using referral code **`AURUM-TEST`**.
+### In Mock Mode (Default)
+1. Register in the mobile client using referral invite code **`AURUM-2026`** or **`FOUNDER-01`**.
+2. Request a phone/email OTP during sign-in and authenticate using mock verification code **`123456`**.
+
+### In Supabase (Live Mode)
+1. Sign up in-app using referral code **`AURUM-TEST`** (pre-seeded via `schema.sql`).
 2. To make yourself an admin, open Supabase SQL editor and run:
 
    ```sql
@@ -106,7 +113,7 @@ Then choose one:
    values ('<your auth.uid>', 'admin');
    ```
 
-Your `auth.uid` is visible under **Authentication → Users**.
+Your `auth.uid` is visible under **Authentication ➜ Users**.
 
 ---
 

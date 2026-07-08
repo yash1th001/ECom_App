@@ -23,32 +23,30 @@ Mobile-first React Native app for browsing, price-checking, and buying gold jewe
 
 ```bash
 cd expo-app
-cp .env.example .env         # fill in Supabase URL + anon key
 npm install
-npx expo start
+npm run web           # Runs on http://localhost:8081
 ```
 
-Scan the QR with **Expo Go**, or press `i` (iOS simulator) / `a` (Android emulator).
-
-Full instructions — including Supabase schema, seed data, and troubleshooting — live in [`SETUP.md`](./SETUP.md).
+Scan the QR with **Expo Go**, or test it in the web browser. The app runs in **Offline Mock Mode** by default if `.env` keys are unconfigured, allowing you to register with code `AURUM-2026` and verify login with OTP code `123456`.
 
 ---
 
 ## What's inside
 
-- **Referral-gated auth** — signup requires a valid `referral_code` row. Login via phone-OTP, email-OTP, or email + password.
-- **Live pricing** — polls `https://api.gold-api.com/price/XAU` every 15 s, converts USD/oz → INR/g, derives 22K / 24K rates. Ticker is always visible.
+- **Referral-gated auth** — signup requires a valid `referral_code`. Login via phone-OTP, email-OTP, or email + password.
+- **Live pricing** — polls XAU gold rates every 15 s, fetches dynamic USD ➜ INR currency exchange rates from `open.er-api.com`, and derives pure 24K, 22K, and 18K rates per gram.
 - **10-minute price lock** — cart items snapshot the current rate; a countdown re-quotes on expiry and warns before checkout if the price moved.
 - **Catalog + filters** — purity, weight range, category, making-charge range. Every card has an "ⓘ" breakdown (base gold + making + GST).
 - **Cart & checkout** — enforces a configurable minimum total weight (default 100 g). Above ₹2 L order value, prompts KYC upload before placing the order.
-- **Orders** — realtime stage tracker: Placed → Insured Escrow → Dispatched → Delivered. Optional courier AWB module.
+- **Orders** — realtime stage tracker: Placed ➜ Insured Escrow ➜ Dispatched ➜ Delivered (automatically simulates stage progression in development/mock mode).
+- **KYC Document Picker** — uses native `expo-image-picker` to select or snap verification photos of PAN cards or Government IDs.
 - **Kill switch** — if `settings.storefront_paused = true`, checkout is blocked with a clear message.
-- **Secure storage** — tokens/session/PII cached via `expo-secure-store`, never plain `AsyncStorage`.
+- **Secure storage** — tokens/session/PII cached via `expo-secure-store` (falls back to local storage on web).
 - **Notifications** — local notifications for price-lock expiry and order stage changes.
 
-## Payment integration point
+## Payment & escrow simulator
 
-`app/checkout.tsx` calls `placeOrder()` in `src/lib/orders.ts`. Insert your Razorpay/Stripe SDK call there — drop-in via `react-native-razorpay` or `@stripe/stripe-react-native`.
+`app/checkout.tsx` prompts you to choose between Stripe or Razorpay, triggers a loading payment overlay, verifies transaction success, and passes the authorization reference to `placeOrder()` in `src/lib/orders.ts`. You can easily swap this mock sheet for production SDKs in `orders.ts`.
 
 ## License
 

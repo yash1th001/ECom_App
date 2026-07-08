@@ -1,40 +1,55 @@
 # Aurum — Gold & Jewelry (Expo)
 
-Mobile-first React Native app for browsing, price-checking, and buying gold jewelry against live market rates. Built with Expo Router, Zustand, Supabase, and expo-secure-store.
+Mobile-first React Native app for browsing, price-checking, and buying gold jewelry against **live market rates**. Built with Expo Router, Zustand, Supabase, and `expo-secure-store`.
 
-> This project was generated in a web-only sandbox and cannot preview here. Copy this folder to your machine and run it locally with Expo.
+> This app is a **React Native (Expo)** project. It does **not** run in the Lovable web preview — clone the folder to your machine and run it with Expo. See [`SETUP.md`](./SETUP.md).
 
-## Prerequisites
-- Node.js 20+
-- A Supabase project (free tier is fine). Run `supabase/schema.sql` in the SQL editor to create tables, RLS policies, and seed products.
-- Expo Go on your phone, or an iOS/Android simulator.
+---
 
-## Setup
+## Documentation
+
+| File | What it covers |
+| --- | --- |
+| [`SETUP.md`](./SETUP.md) | Local development: prerequisites, install, Supabase setup, environment variables, running on device/simulator. |
+| [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Building and shipping with EAS Build / EAS Submit to the App Store and Play Store, OTA updates, production Supabase, secrets. |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Folder layout, state stores, pricing engine, price-lock, kill-switch, integration points. |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Coding conventions, PR checklist. |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Release history. |
+| [`LICENSE`](./LICENSE) | MIT. |
+
+---
+
+## Quick start
 
 ```bash
 cd expo-app
-cp .env.example .env
-# fill in EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY
+cp .env.example .env         # fill in Supabase URL + anon key
 npm install
 npx expo start
 ```
 
-Scan the QR with Expo Go, or press `i` / `a` for a simulator.
+Scan the QR with **Expo Go**, or press `i` (iOS simulator) / `a` (Android emulator).
+
+Full instructions — including Supabase schema, seed data, and troubleshooting — live in [`SETUP.md`](./SETUP.md).
+
+---
 
 ## What's inside
 
-- **Referral-gated auth** — signup requires a valid `referral_code` row. Login via phone-OTP, email-OTP, or email+password.
-- **Live pricing** — polls `https://api.gold-api.com/price/XAU` every 15 s, converts USD/oz → INR/g, and derives 22K/24K rates. Ticker is always visible.
-- **10-minute price lock** — when an item is added to the cart, its rate is snapshotted; a countdown re-quotes it on expiry and warns the user before checkout if the price moved.
-- **Catalog + filters** — purity, weight range, category, making-charge range. Every card has an "ⓘ" breakdown showing base gold + making + GST.
-- **Cart & checkout** — enforces a configurable minimum total weight (default 100 g). Above ₹2 L order value, prompts KYC upload before placing the order. Payment step is stubbed for you to wire Razorpay/Stripe.
-- **Orders** — stage tracker: Placed → Insured Escrow → Dispatched → Delivered. Optional courier AWB module.
+- **Referral-gated auth** — signup requires a valid `referral_code` row. Login via phone-OTP, email-OTP, or email + password.
+- **Live pricing** — polls `https://api.gold-api.com/price/XAU` every 15 s, converts USD/oz → INR/g, derives 22K / 24K rates. Ticker is always visible.
+- **10-minute price lock** — cart items snapshot the current rate; a countdown re-quotes on expiry and warns before checkout if the price moved.
+- **Catalog + filters** — purity, weight range, category, making-charge range. Every card has an "ⓘ" breakdown (base gold + making + GST).
+- **Cart & checkout** — enforces a configurable minimum total weight (default 100 g). Above ₹2 L order value, prompts KYC upload before placing the order.
+- **Orders** — realtime stage tracker: Placed → Insured Escrow → Dispatched → Delivered. Optional courier AWB module.
 - **Kill switch** — if `settings.storefront_paused = true`, checkout is blocked with a clear message.
-- **Secure storage** — all tokens, session, and PII cached via `expo-secure-store`, never plain `AsyncStorage`.
-- **Notifications** — local notifications for price-lock expiry and order stage changes via `expo-notifications`.
+- **Secure storage** — tokens/session/PII cached via `expo-secure-store`, never plain `AsyncStorage`.
+- **Notifications** — local notifications for price-lock expiry and order stage changes.
 
 ## Payment integration point
-`app/checkout.tsx` calls `placeOrder()` in `src/lib/orders.ts`. Insert your Razorpay/Stripe SDK call there. Both are drop-in via `react-native-razorpay` or `@stripe/stripe-react-native`.
 
-## File map
-See `app/` for screens (Expo Router file-based routing) and `src/` for components, stores, and libs.
+`app/checkout.tsx` calls `placeOrder()` in `src/lib/orders.ts`. Insert your Razorpay/Stripe SDK call there — drop-in via `react-native-razorpay` or `@stripe/stripe-react-native`.
+
+## License
+
+MIT — see [`LICENSE`](./LICENSE).

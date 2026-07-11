@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { T } from "@/components/Text";
@@ -12,11 +12,13 @@ import type { Order } from "@/types";
 import { rupees } from "@/lib/formatters";
 import { supabase } from "@/lib/supabase";
 import { notifyLocal } from "@/lib/notifications";
+import { Button } from "@/components/Button";
 
 export default function OrderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const prevStage = useRef<Order["stage"] | null>(null);
+  const [simulating, setSimulating] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -34,6 +36,26 @@ export default function OrderDetail() {
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, [id]);
+
+  async function triggerSimulation() {
+    if (!id || simulating) return;
+    setSimulating(true);
+    try {
+      if (typeof supabase.rpc === "function") {
+        const { error } = await supabase.rpc("simulate_order_stage_transition", { order_id: id });
+        if (error) throw error;
+        // The realtime subscription should trigger, but load again to be safe
+        const updated = await loadOrder(String(id));
+        if (updated) setOrder(updated);
+      }
+    } catch (e: any) {
+      Alert.alert("Simulation failed", e?.message ?? "Please try again.");
+    } finally {
+      setSimulating(false);
+    }
+  }
+
+  const showSimulator = typeof supabase.rpc === "function" && order && order.stage !== "delivered" && order.stage !== "cancelled";
 
   if (order === undefined) return <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: "center" }}><ActivityIndicator color={colors.gold} /></View>;
   if (!order) return <EmptyState title="Order not found" />;
@@ -55,6 +77,15 @@ export default function OrderDetail() {
               <T variant="price">AWB {order.awb_number}</T>
               {order.eta && <T variant="small" color={colors.inkSoft}>ETA {order.eta}</T>}
             </View>
+          )}
+          {showSimulator && (
+            <Button
+              label="Simulate Next Stage"
+              variant="secondary"
+              loading={simulating}
+              onPress={triggerSimulation}
+              style={{ marginTop: s.sm }}
+            />
           )}
         </View>
 

@@ -41,15 +41,7 @@ export default function Register() {
         options: { data: { full_name: name, referral_code: ref.code } },
       });
       if (error) throw error;
-      // 3. persist profile
-      if (data.user) {
-        await supabase.from("profiles").upsert({
-          id: data.user.id,
-          full_name: name,
-          email: email.trim(),
-          referral_code: ref.code,
-        });
-      }
+      
       Alert.alert("Check your email", "We sent a confirmation link. Open it, then sign in.");
       router.replace("/(auth)/login");
     } catch (e: any) {

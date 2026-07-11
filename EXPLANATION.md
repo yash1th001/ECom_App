@@ -32,7 +32,7 @@ App/
 Contains backend resources, configuration, and database setup files.
 
 ### 📄 [backend/supabase/schema.sql](file:///c:/Users/asus/Desktop/App/backend/supabase/schema.sql)
-- **Role**: Defines the PostgreSQL database schema for the Supabase backend.
+- **Role**: Defines the PostgreSQL database schema, RLS rules, and core backend logic for the Supabase backend.
 - **Key Tables**:
   - `settings`: Store configuration, including a kill switch for storefront access control.
   - `referral_codes`: Gated entry invite codes (`AURUM-2026` or `FOUNDER-01`) for sign-up.
@@ -40,6 +40,11 @@ Contains backend resources, configuration, and database setup files.
   - `products`: Jewelry items catalog (Bullion, chains, bangles, rings, pendants, earrings) with weight, purity, and making charges.
   - `addresses`: Shipping addresses linked to users.
   - `orders`: Transactions with weight calculations, billing amounts, order stages (`placed`, `insured_escrow`, `dispatched`, `delivered`), and live shipping updates.
+- **Backend Core Functions & Triggers**:
+  - `public.handle_new_user()` / `on_auth_user_created`: Automatically creates a record in `public.profiles` upon successful authentication signup in `auth.users`, fetching metadata fields like name and invite code.
+  - `public.validate_referral_code()` / `on_profile_referral_check`: Re-validates the referral code on profile inserts/updates to check if it's active. If inactive or invalid, rejects the signup.
+  - `public.decrement_product_stock()` / `on_order_placed_decrement_stock`: Validates product stock during order placement and decrements catalog stock quantities accordingly.
+  - `public.simulate_order_stage_transition(order_id)`: A testing procedure that advances an order's shipping stages in sequence, enabling developer previews of realtime stage updates.
 - **Policies**: Configures Row Level Security (RLS) policies so authenticated users can only access their own profile, orders, and addresses.
 
 ---

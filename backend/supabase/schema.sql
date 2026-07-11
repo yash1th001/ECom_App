@@ -150,3 +150,137 @@ create policy orders_self_insert on public.orders for insert with check (auth.ui
 
 -- Realtime for order stage updates:
 alter publication supabase_realtime add table public.orders;
+
+-- =========================================================================
+-- Triggers and Functions for Auth & Profile Sync
+-- =========================================================================
+
+-- Function to automatically handle new user registration in auth.users
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, full_name, email, phone, referral_code)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', 'Valued Customer'),
+    new.email,
+    new.phone,
+    coalesce(new.raw_user_meta_data->>'referral_code', 'AURUM-2026')
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Bind handle_new_user trigger
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- =========================================================================
+-- Triggers and Functions for Referral Gating
+-- =========================================================================
+
+-- Function to validate that a referral code is active
+create or replace function public.validate_referral_code()
+returns trigger as $$
+declare
+  is_active boolean;
+begin
+  if new.referral_code is not null then
+    select active into is_active from public.referral_codes where code = new.referral_code;
+    if is_active is null or not is_active then
+      raise exception 'Referral code % is invalid or inactive', new.referral_code;
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Bind validate_referral_code trigger
+drop trigger if exists on_profile_referral_check on public.profiles;
+create trigger on_profile_referral_check
+  before insert or update on public.profiles
+  for each row execute procedure public.validate_referral_code();
+
+-- =========================================================================
+-- Triggers and Functions for Order Stock Management
+-- =========================================================================
+
+-- Function to decrement product stock when an order is placed
+create or replace function public.decrement_product_stock()
+returns trigger as $$
+declare
+  item jsonb;
+  prod_id uuid;
+  qty int;
+begin
+  for item in select jsonb_array_elements(new.items) loop
+    prod_id := (item->>'product_id')::uuid;
+    qty := (item->>'quantity')::int;
+    
+    -- Check stock availability
+    if not exists (select 1 from public.products where id = prod_id and stock >= qty) then
+      raise exception 'Insufficient stock for product id %', prod_id;
+    end if;
+
+    -- Decrement stock
+    update public.products
+    set stock = stock - qty
+    where id = prod_id;
+  end loop;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Bind decrement_product_stock trigger
+drop trigger if exists on_order_placed_decrement_stock on public.orders;
+create trigger on_order_placed_decrement_stock
+  before insert on public.orders
+  for each row execute procedure public.decrement_product_stock();
+
+-- =========================================================================
+-- Helper Functions for Escrow Realtime Simulation
+-- =========================================================================
+
+-- Function to advance an order to the next stage
+create or replace function public.simulate_order_stage_transition(order_id uuid)
+returns text as $$
+declare
+  curr_stage text;
+  next_stage text;
+  new_courier text;
+  new_awb text;
+  new_eta text;
+begin
+  select stage into curr_stage from public.orders where id = order_id;
+  
+  if curr_stage = 'placed' then
+    next_stage := 'insured_escrow';
+    new_courier := 'Processing Escrow';
+    new_awb := 'MOCK_PAYMENT_VERIFIED';
+    new_eta := 'Pending Escrow Insurance';
+  elsif curr_stage = 'insured_escrow' then
+    next_stage := 'dispatched';
+    new_courier := 'Blue Dart';
+    new_awb := 'BD' || floor(random() * 900000000 + 100000000)::text;
+    new_eta := 'Tomorrow, 5:00 PM';
+  elsif curr_stage = 'dispatched' then
+    next_stage := 'delivered';
+    new_courier := 'Blue Dart';
+    new_awb := 'BD' || floor(random() * 900000000 + 100000000)::text;
+    new_eta := 'Delivered';
+  else
+    return curr_stage;
+  end if;
+
+  update public.orders
+  set stage = next_stage,
+      courier = coalesce(new_courier, courier),
+      awb_number = coalesce(new_awb, awb_number),
+      eta = coalesce(new_eta, eta)
+  where id = order_id;
+
+  return next_stage;
+end;
+$$ language plpgsql security definer;

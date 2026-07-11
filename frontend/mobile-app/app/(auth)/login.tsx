@@ -23,8 +23,11 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === "email-password") {
-        const { error } = await supabase.auth.signInWithPassword({ email: id.trim(), password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: id.trim(), password });
         if (error) throw error;
+        if (data?.session) {
+          router.replace("/(tabs)");
+        }
       } else if (mode === "email-otp") {
         const { error } = await supabase.auth.signInWithOtp({ email: id.trim() });
         if (error) throw error;

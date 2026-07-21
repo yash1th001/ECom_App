@@ -21,6 +21,7 @@ App/
 │       ├── app/                    # Expo Router file-based pages
 │       ├── src/                    # Application components, stores, hooks, & helpers
 │       └── ... (Expo configs)
+├── CONVERSATION_HISTORY.md         # Consolidated chat log of both project sessions
 ├── EXPLANATION.md                  # This file (explaining file functionalities)
 └── README.md                       # Workspace quickstart and developer guide
 ```
@@ -84,9 +85,9 @@ Expo Router uses file-based routing:
 - [kyc.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/kyc.tsx): Gate requiring PAN/Government ID photo upload if checkout order value exceeds ₹2,00,000.
 - [unavailable.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/unavailable.tsx): Displays a maintenance page if storefront storefront_paused setting is true.
 - **`(auth)/`** (Authentication route group):
-  - [login.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/login.tsx): Sign-in form requesting user email or phone number.
-  - [otp.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/otp.tsx): OTP entry verification page (mocked to verify with code `123456`).
-  - [register.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/register.tsx): Gated register page requiring referral invite code.
+  - [login.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/login.tsx): Sign-in form requesting user email or phone number. Includes an explicit redirection redirecting the client to tab directories immediately upon successful authentication.
+  - [otp.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/otp.tsx): OTP entry verification page (mocked to verify with code `123456` or live OTPs).
+  - [register.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/register.tsx): Gated register page requiring referral invite code. Offloads profile creation entirely to database triggers on signup.
   - [welcome.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(auth)/welcome.tsx): Brand presentation splash screen.
 - **`(tabs)/`** (Main navigation route group):
   - [index.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(tabs)/index.tsx): Browse catalog items, categories, and promotions.
@@ -96,7 +97,7 @@ Expo Router uses file-based routing:
   - [profile.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/(tabs)/profile.tsx): Displays account parameters, current verification status, and log-out actions.
 - **`product/` & `order/`** (Dynamic routes):
   - [product/[id].tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/product/%5Bid%5D.tsx): Product details page displaying hallmark certifications, making charges, and dynamic weight selections.
-  - [order/[id].tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/order/%5Bid%5D.tsx): Order tracking page loading realtime escrow and dispatch updates.
+  - [order/[id].tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/app/order/%5Bid%5D.tsx): Order tracking page loading realtime escrow and dispatch updates. Features a custom development/sandbox shipping simulation controller that updates database states via RPC triggers.
 
 #### 🛠️ Source Assets: [frontend/mobile-app/src/](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/src)
 - [components/](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/src/components): Custom components (like [PriceTicker.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/src/components/PriceTicker.tsx), [CountdownTimer.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/src/components/CountdownTimer.tsx), [StageTracker.tsx](file:///c:/Users/asus/Desktop/App/frontend/mobile-app/src/components/StageTracker.tsx), etc.).
